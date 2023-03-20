@@ -340,10 +340,10 @@ namespace ArtifactEvolutionPlusPlus
             {
                 // 更新已有物品数量
                 (from t in SaveMonsterItems
-                 where t.ItemDef.name == item.ItemDef.name
+                 where t.Name == item.Name
                  select t).ToList().ForEach(y => y.Count += item.Count);
                 // 添加新的物品
-                MonsterItemConcreteStruct addDiffnet = SaveMonsterItems.Find(x => x.ItemDef.name == item.ItemDef.name);
+                MonsterItemConcreteStruct addDiffnet = SaveMonsterItems.Find(x => x.Name == item.Name);
                 if (addDiffnet is null)
                 {
                     SaveMonsterItems.Add(item);
@@ -372,7 +372,7 @@ namespace ArtifactEvolutionPlusPlus
             SaveMonsterItems = (from t in SaveMonsterItems orderby t.Order descending, t.Count descending select t).ToList();
             foreach (var item in SaveMonsterItems)
             {
-                AddMonsterTeamItem(item.ItemDef.name, item.Count);
+                AddMonsterTeamItem(item.Name, item.Count);
             }
             //foreach (MonsterItemDef  monsterItem in SaveMonsterItems)
             //{
@@ -545,20 +545,20 @@ namespace ArtifactEvolutionPlusPlus
                     
                     //CurrentMonsterItems = (from t in CurrentMonsterItems orderby t.Order descending, t.Count descending select t).ToList();
                     var qTable = from t in CurrentMonsterItems
-                                 group t by new { t.ItemDef.name, t.Order }
+                                 group t by new { t.Name, t.Order }
                                  into y
                                  select new
                                  {
                                      y.Key.Order,
-                                     y.Key.name,
+                                     y.Key.Name,
                                      Count = y.Sum(x => x.Count)
                                  };
                     //qTable = qTable.ToList().OrderByDescending(x => x.Order);
                     qTable = (from t in qTable orderby t.Order descending, t.Count descending select t);
                     foreach (var monsterItem in qTable)
                     {
-                        instance.Logger.LogDebug($"{monsterItem.name} = {monsterItem.Count}, order{monsterItem.Order}");
-                        ItemDef item = ItemController_Instance.ItemAll.FirstOrDefault(x => x.name == monsterItem.name);
+                        instance.Logger.LogDebug($"{monsterItem.Name} = {monsterItem.Count}, order{monsterItem.Order}");
+                        ItemDef item = ItemController_Instance.ItemAll.FirstOrDefault(x => x.name == monsterItem.Name);
                         string color = "";
                         if (monsterItem.Count > 0)
                             color = $"<color=red>{monsterItem.Count}</color>";
@@ -609,6 +609,10 @@ namespace ArtifactEvolutionPlusPlus
         internal class MonsterItemConcreteStruct : MonsterItemInterface
         {
             public ItemDef ItemDef;
+            public string Name
+            {
+                get { return ItemDef.name; }
+            }
             public int Count;
             public int Order
             {
@@ -626,10 +630,7 @@ namespace ArtifactEvolutionPlusPlus
             public string Name;
             public int PoolRange;
             public int Count;
-            public int Order
-            {
-                get { return -1; }
-            }
+            // public int Order { get { return ItemController_Instance.GetItemOrder(ItemController_Instance.GetPool(Name).FirstOrDefault()); } }
 
             public MonsterItemClassStruct(string name, int poolrange, int count)
             {

@@ -102,6 +102,8 @@ namespace ArtifactEvolutionPlusPlus
 
         public int GetItemOrder(ItemDef itemDef)
         {
+            if (itemDef == null)
+                return -1;
             switch (itemDef.tier)
             {
                 case ItemTier.Tier1:
