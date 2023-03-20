@@ -262,25 +262,31 @@ namespace ArtifactEvolutionPlusPlus
         /// <summary>
         /// 针对关键字的处理方放
         /// </summary>
-        /// <param name="monsterItemDef"></param>
-        /// <param name="ItemDefs"></param>
-        private void HandleClassItem(List<ItemDef> ItemDefs, int poolRange, int count)
+        private void HandleClassItem(List<ItemDef> itemDefs, int poolRange, int count)
         {
+            if(poolRange < 0 || count < 0)
+            {
+                itemDefs = new List<ItemDef>();
+                foreach(var item in SaveMonsterItems)
+                {
+                    if(!itemDefs.Contains(item.ItemDef))
+                        itemDefs.Add(item.ItemDef);
+                }
+                poolRange = Math.Abs(poolRange);
+                count = Math.Abs(count);
+            }
             List<MonsterItemConcreteStruct> tempSaveItems = new List<MonsterItemConcreteStruct>();
             string[] itemString;
-            int totalPoolRange = ItemDefs.Count;
+            int totalPoolRange = itemDefs.Count;
             string message = "";
-            ChatHelper.DebugSend("totalPoolRange = " + totalPoolRange + ", poolRange = " + poolRange);
             if (poolRange > totalPoolRange) 
             { 
                 poolRange = totalPoolRange; 
             }
-            ChatHelper.DebugSend("totalPoolRange = " + totalPoolRange + ", poolRange = " + poolRange);
-
-            itemString = GetRandomPoolNum(ItemDefs, totalPoolRange, poolRange); // 开始随机抽取
+            itemString = GetRandomPoolNum(itemDefs, totalPoolRange, poolRange); // 开始随机抽取
             foreach (string codeName in itemString)
             {
-                ItemDef ItemDef = ItemDefs.AsEnumerable().FirstOrDefault(t => t.name == codeName);
+                ItemDef ItemDef = itemDefs.AsEnumerable().FirstOrDefault(t => t.name == codeName);
                 message += NameToLocal(ItemDef.name) + "-" + count + " ";
                 AddMonsterTeamItem(ItemDef.name, count);
                 tempSaveItems.Add(new MonsterItemConcreteStruct(ItemDef, count)); // 生成结果
