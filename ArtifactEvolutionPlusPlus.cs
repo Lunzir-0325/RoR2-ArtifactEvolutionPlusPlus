@@ -23,9 +23,12 @@ namespace ArtifactEvolutionPlusPlus
         private static ItemController ItemController_Instance;
         private static List<MonsterItemConcreteStruct> SaveMonsterItems;
         private static List<MonsterItemConcreteStruct> CurrentMonsterItems;
+
+        private static ArtifactEvolutionPlusPlus instance;
         
         public void Awake()
         {
+            instance = this;
             ModConfig.InitConfig(Config);
 
             if (ModConfig.EnableMod.Value)
@@ -103,7 +106,7 @@ namespace ArtifactEvolutionPlusPlus
                 if (stageIndex == (i + 1))
                 {
                     itemCodes = ModConfig.StageCustomItemList[i].Value.Split(',');
-                    ChatHelper.DebugSend("itemCodes = " + itemCodes.Length);
+                    Logger.LogDebug("itemCodes = " + itemCodes.Length);
                     monsterItemDefs = SplitAndAddList(itemCodes);
                     InitItemData_Handle(monsterItemDefs);
                     break; // 找到对应关卡就退出循环
@@ -155,7 +158,7 @@ namespace ArtifactEvolutionPlusPlus
                         } 
                         else
                         {
-                            // error
+                            Logger.LogError("Item code " + itemCodes[i] + " could not be parsed. " + itemName + " is not a keyword and not a known item.");
                         }
                     }
                     if (codes.Count() == 3) // 如果是这个格式：KeyName-ItemPoolRange-Count
@@ -168,7 +171,7 @@ namespace ArtifactEvolutionPlusPlus
                         }
                         else
                         {
-                            // error
+                            Logger.LogError("Item code " + itemCodes[i] + " could not be parsed. " + itemName + " is not a keyword.");
                         }
                     }
                 }
@@ -220,7 +223,7 @@ namespace ArtifactEvolutionPlusPlus
                 if (monsterItemDef is MonsterItemClassStruct)
                 {
                     MonsterItemClassStruct classItem = monsterItemDef as MonsterItemClassStruct;
-                    ChatHelper.DebugSend("item.Name = " + classItem.Name);
+                    Logger.LogDebug("item.Name = " + classItem.Name);
                     if (classItem.Name.ToLower() == "AllWhite".ToLower() || classItem.Name.ToLower() == "AllTier1".ToLower())
                     {
                         HandleClassItem(ItemController_Instance.ItemTier1, classItem.PoolRange, classItem.Count);
@@ -292,7 +295,7 @@ namespace ArtifactEvolutionPlusPlus
                 tempSaveItems.Add(new MonsterItemConcreteStruct(ItemDef, count)); // 生成结果
 
                 if (ModConfig.EnableMessage.Value) CurrentMonsterItems.Add(new MonsterItemConcreteStruct(ItemDef, count));
-                ChatHelper.DebugSend(message);
+                Logger.LogDebug(message);
             }
             UpdateItems(tempSaveItems); // 更新数量
         }
@@ -546,7 +549,7 @@ namespace ArtifactEvolutionPlusPlus
             {
                 if (!(CurrentMonsterItems is null) && CurrentMonsterItems.Count > 0)
                 {
-                    ChatHelper.DebugSend($"CurrentMonsterItems.Count = {CurrentMonsterItems.Count}");
+                    instance.Logger.LogDebug($"CurrentMonsterItems.Count = {CurrentMonsterItems.Count}");
                     string info = "<style=cUserSetting>======= 怪物获得新物品 =======</style>\n";
                     if (!ModConfig.GetIsCN())
                     {
@@ -567,7 +570,7 @@ namespace ArtifactEvolutionPlusPlus
                     qTable = (from t in qTable orderby t.Order descending, t.Count descending select t);
                     foreach (var monsterItem in qTable)
                     {
-                        ChatHelper.DebugSend($"{monsterItem.name} = {monsterItem.Count}, order{monsterItem.Order}");
+                        instance.Logger.LogDebug($"{monsterItem.name} = {monsterItem.Count}, order{monsterItem.Order}");
                         ItemDef item = ItemController_Instance.ItemAll.FirstOrDefault(x => x.name == monsterItem.name);
                         string color = "";
                         if (monsterItem.Count > 0)
