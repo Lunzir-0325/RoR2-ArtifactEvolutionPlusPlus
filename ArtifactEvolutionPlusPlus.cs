@@ -223,31 +223,31 @@ namespace ArtifactEvolutionPlusPlus
                     ChatHelper.DebugSend("item.Name = " + classItem.Name);
                     if (classItem.Name.ToLower() == "AllWhite".ToLower() || classItem.Name.ToLower() == "AllTier1".ToLower())
                     {
-                        HandleClassItem(classItem, ItemController_Instance.ItemTier1);
+                        HandleClassItem(ItemController_Instance.ItemTier1, classItem.PoolRange, classItem.Count);
                     }
                     else if (classItem.Name.ToLower() == "AllGreen".ToLower() || classItem.Name.ToLower() == "AllTier2".ToLower())
                     {
-                        HandleClassItem(classItem, ItemController_Instance.ItemTier2);
+                        HandleClassItem(ItemController_Instance.ItemTier2, classItem.PoolRange, classItem.Count);
                     }
                     else if (classItem.Name.ToLower() == "AllRed".ToLower() || classItem.Name.ToLower() == "AllTier3".ToLower())
                     {
-                        HandleClassItem(classItem, ItemController_Instance.ItemTier3);
+                        HandleClassItem(ItemController_Instance.ItemTier3, classItem.PoolRange, classItem.Count);
                     }
                     else if (classItem.Name.ToLower() == "AllYellow".ToLower() || classItem.Name.ToLower() == "AllBoss".ToLower())
                     {
-                        HandleClassItem(classItem, ItemController_Instance.ItemBoss);
+                        HandleClassItem(ItemController_Instance.ItemBoss, classItem.PoolRange, classItem.Count);
                     }
                     else if (classItem.Name.ToLower() == "AllVoid".ToLower() || classItem.Name.ToLower() == "AllPurple".ToLower())
                     {
-                        HandleClassItem(classItem, ItemController_Instance.ItemVoidTier);
+                        HandleClassItem(ItemController_Instance.ItemVoidTier, classItem.PoolRange, classItem.Count);
                     }
                     else if (classItem.Name.ToLower() == "AllLunar".ToLower() || classItem.Name.ToLower() == "AllBlue".ToLower())
                     {
-                        HandleClassItem(classItem, ItemController_Instance.ItemLunar);
+                        HandleClassItem(ItemController_Instance.ItemLunar, classItem.PoolRange, classItem.Count);
                     }
                     else if (classItem.Name.ToLower() == "AllRandom".ToLower())
                     {
-                        HandleClassItem(classItem, ItemController_Instance.ItemAll_Ban);
+                        HandleClassItem(ItemController_Instance.ItemAll_Ban, classItem.PoolRange, classItem.Count);
                     }
                 } 
                 else if (monsterItemDef is MonsterItemConcreteStruct)
@@ -264,29 +264,28 @@ namespace ArtifactEvolutionPlusPlus
         /// </summary>
         /// <param name="monsterItemDef"></param>
         /// <param name="ItemDefs"></param>
-        private void HandleClassItem(MonsterItemClassStruct monsterItemDef, List<ItemDef> ItemDefs)
+        private void HandleClassItem(List<ItemDef> ItemDefs, int poolRange, int count)
         {
             List<MonsterItemConcreteStruct> tempSaveItems = new List<MonsterItemConcreteStruct>();
             string[] itemString;
             int totalPoolRange = ItemDefs.Count;
-            int currPoolRange = monsterItemDef.PoolRange;
             string message = "";
-            ChatHelper.DebugSend("totalPoolRange = " + totalPoolRange + ", currPoolRange = " + currPoolRange);
-            if (currPoolRange > totalPoolRange) 
+            ChatHelper.DebugSend("totalPoolRange = " + totalPoolRange + ", poolRange = " + poolRange);
+            if (poolRange > totalPoolRange) 
             { 
-                currPoolRange = totalPoolRange; 
+                poolRange = totalPoolRange; 
             }
-            ChatHelper.DebugSend("totalPoolRange = " + totalPoolRange + ", currPoolRange = " + currPoolRange);
+            ChatHelper.DebugSend("totalPoolRange = " + totalPoolRange + ", poolRange = " + poolRange);
 
-            itemString = GetRandomPoolNum(ItemDefs, totalPoolRange, currPoolRange); // 开始随机抽取
+            itemString = GetRandomPoolNum(ItemDefs, totalPoolRange, poolRange); // 开始随机抽取
             foreach (string codeName in itemString)
             {
                 ItemDef ItemDef = ItemDefs.AsEnumerable().FirstOrDefault(t => t.name == codeName);
-                message += NameToLocal(ItemDef.name) + "-" + monsterItemDef.Count + " ";
-                AddMonsterTeamItem(ItemDef.name, monsterItemDef.Count);
-                tempSaveItems.Add(new MonsterItemConcreteStruct(ItemDef, monsterItemDef.Count)); // 生成结果
+                message += NameToLocal(ItemDef.name) + "-" + count + " ";
+                AddMonsterTeamItem(ItemDef.name, count);
+                tempSaveItems.Add(new MonsterItemConcreteStruct(ItemDef, count)); // 生成结果
 
-                if (ModConfig.EnableMessage.Value) CurrentMonsterItems.Add(new MonsterItemConcreteStruct(ItemDef, monsterItemDef.Count));
+                if (ModConfig.EnableMessage.Value) CurrentMonsterItems.Add(new MonsterItemConcreteStruct(ItemDef, count));
                 ChatHelper.DebugSend(message);
             }
             UpdateItems(tempSaveItems); // 更新数量
