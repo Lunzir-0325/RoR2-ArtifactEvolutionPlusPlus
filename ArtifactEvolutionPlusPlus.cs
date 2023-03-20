@@ -134,7 +134,7 @@ namespace ArtifactEvolutionPlusPlus
                     string itemName = codes[0].ToString().Trim();
                     int poolrange = int.MaxValue;
                     int count = 1;
-                    ItemDef itemClass = ItemController_Instance.ItemAll_Ban.Find(t => t.name.ToLower() == itemName.ToLower());
+                    ItemDef itemClass = ItemController_Instance.ItemAll.Find(t => t.name.ToLower() == itemName.ToLower());
                     if (itemName.IsNullOrWhiteSpace())
                     {
                         continue;
@@ -147,30 +147,30 @@ namespace ArtifactEvolutionPlusPlus
                         {
                             poolrange = int.Parse(codes[1].ToString().Trim());
                             count = 1;
+                            _customItems.Add(new MonsterItemClassStruct(itemName, poolrange, count));
+                        }
+                        else if(itemClass != null)
+                        {
+                            _customItems.Add(new MonsterItemConcreteStruct(itemClass, count));
+                        } 
+                        else
+                        {
+                            // error
                         }
                     }
                     if (codes.Count() == 3) // 如果是这个格式：KeyName-ItemPoolRange-Count
                     {
                         poolrange = int.Parse(codes[1].ToString().Trim());
                         count = int.Parse(codes[2].ToString().Trim());
-                    }
-                    if (itemClass is null) // 如果是关键字 或者 禁用的物品 但使用直接插入，没有ItemClass
-                    {
-                        // class
-                        ChatHelper.DebugSend($"itemName = {itemName}, poolrange ={poolrange}, count = {count}, order = -1");
-                        if (ModConfig.EnableMessage.Value)
+                        if (IsKeyWord(itemName))
                         {
-                            itemClass = ItemController_Instance.ItemAll.Find(t => t.name.ToLower() == itemName.ToLower());
+                            _customItems.Add(new MonsterItemClassStruct(itemName, poolrange, count));
                         }
-                        int order = itemClass is null ? -1 : ItemController_Instance.GetItemOrder(itemClass);
-                        _customItems.Add(new MonsterItemClassStruct(itemName, poolrange, count, order));
+                        else
+                        {
+                            // error
+                        }
                     }
-                    else
-                    {
-                        ChatHelper.DebugSend($"itemName = {itemName}, poolrange ={poolrange}, count = {count}, order = {ItemController_Instance.GetItemOrder(itemClass)}");
-                        _customItems.Add(new MonsterItemConcreteStruct(itemClass, count));
-                    }
-
                 }
             }
             catch (Exception e)
@@ -630,14 +630,16 @@ namespace ArtifactEvolutionPlusPlus
             public string Name;
             public int PoolRange;
             public int Count;
-            public int Order;
+            public int Order
+            {
+                get { return -1; }
+            }
 
-            public MonsterItemClassStruct(string name, int poolrange, int count, int order)
+            public MonsterItemClassStruct(string name, int poolrange, int count)
             {
                 Name = name;
                 PoolRange = poolrange;
                 Count = count;
-                Order = order;
             }
         }
     }
