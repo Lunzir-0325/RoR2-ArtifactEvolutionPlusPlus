@@ -21,8 +21,8 @@ namespace ArtifactEvolutionPlusPlus
         System.Random Random = new System.Random();
 
         private static ItemController ItemController_Instance;
-        private static List<MonsterItemStruct> SaveMonsterItems;
-        private static List<MonsterItemStruct> CurrentMonsterItems;
+        private static List<MonsterItemConcreteStruct> SaveMonsterItems;
+        private static List<MonsterItemConcreteStruct> CurrentMonsterItems;
         
         public void Awake()
         {
@@ -72,12 +72,12 @@ namespace ArtifactEvolutionPlusPlus
                     {
                         ItemController_Instance = new ItemController();
                     }
-                    SaveMonsterItems = new List<MonsterItemStruct>();
+                    SaveMonsterItems = new List<MonsterItemConcreteStruct>();
                 }
                 if (ModConfig.EnableMessage.Value)
                 {
                     if (!(CurrentMonsterItems is null)) CurrentMonsterItems.Clear();
-                    CurrentMonsterItems = new List<MonsterItemStruct>(); 
+                    CurrentMonsterItems = new List<MonsterItemConcreteStruct>(); 
                 }
                 
                 bool artifactEnable = RunArtifactManager.instance.IsArtifactEnabled(ArtifactCatalog.FindArtifactDef("MonsterTeamGainsItems"));
@@ -97,7 +97,7 @@ namespace ArtifactEvolutionPlusPlus
         {
             int stageIndex = Run.instance.stageClearCount + 1;
             string[] itemCodes = null;
-            List<MonsterItemStruct> monsterItemStructs = new List<MonsterItemStruct>();
+            List<MonsterItemInterface> monsterItemStructs = new List<MonsterItemInterface>();
             for (int i = 0; i < ModConfig.StageCustomItemList.Length; i++)
             {
                 if (stageIndex == (i + 1))
@@ -125,9 +125,9 @@ namespace ArtifactEvolutionPlusPlus
         /// <param name="itemCodes"></param>
         /// <param name="currentStage"></param>
         /// <returns></returns>
-        private List<MonsterItemStruct> SplitAndAddList(string[] itemCodes, int currentStage = 0)
+        private List<MonsterItemInterface> SplitAndAddList(string[] itemCodes, int currentStage = 0)
         {
-            List<MonsterItemStruct> _customItems = new List<MonsterItemStruct>();
+            List<MonsterItemInterface> _customItems = new List<MonsterItemInterface>();
 
             int baseNum = currentStage;
             //int offset = ModConfig.ItemCountOffset.Value;
@@ -140,8 +140,8 @@ namespace ArtifactEvolutionPlusPlus
                 {
                     string[] codes = itemCodes[i].Split('&');
                     string itemName = codes[0].ToString().Trim();
-                    int poolrange = -1;
-                    int count = 0;
+                    int poolrange = int.MaxValue;
+                    int count = 1;
                     ItemStruct itemClass = ItemController_Instance.ItemAll_Ban.Find(t => t.Name.ToLower() == itemName.ToLower());
                     if (itemName.IsNullOrWhiteSpace())
                     {
@@ -149,7 +149,7 @@ namespace ArtifactEvolutionPlusPlus
                     }
                     if (codes.Count() == 2) // 如果是这个格式：ItemName-Count 或者 KeyName-ItemPoolRange
                     {
-                        poolrange = -1;
+                        poolrange = int.MaxValue;
                         count = int.Parse(codes[1].ToString().Trim());
                         if (IsKeyWord(itemName))
                         {
@@ -164,19 +164,19 @@ namespace ArtifactEvolutionPlusPlus
                     }
                     if (itemClass is null) // 如果是关键字 或者 禁用的物品 但使用直接插入，没有ItemClass
                     {
+                        // class
                         ChatHelper.DebugSend($"itemName = {itemName}, poolrange ={poolrange}, count = {count}, order = -1");
                         if (ModConfig.EnableMessage.Value)
                         {
                             itemClass = ItemController_Instance.ItemAll.Find(t => t.Name.ToLower() == itemName.ToLower());
                         }
                         int order = itemClass is null ? -1 : itemClass.Order;
-                        _customItems.Add(new MonsterItemStruct(null, itemName, poolrange, count, order));
+                        _customItems.Add(new MonsterItemClassStruct(itemName, order, poolrange, count));
                     }
                     else
                     {
                         ChatHelper.DebugSend($"itemName = {itemName}, poolrange ={poolrange}, count = {count}, order = {itemClass.Order}");
-
-                        _customItems.Add(new MonsterItemStruct(itemClass, itemName, poolrange, count, itemClass.Order));
+                        _customItems.Add(new MonsterItemConcreteStruct(itemName, itemClass.Order, count, itemClass));
                     }
 
                 }
@@ -221,41 +221,46 @@ namespace ArtifactEvolutionPlusPlus
             }
             return isWhat;
         }
-        private void InitItemData_Handle(List<MonsterItemStruct> monsterItemStructs)
+        private void InitItemData_Handle(List<MonsterItemInterface> monsterItemStructs)
         {
-            foreach (MonsterItemStruct item in monsterItemStructs)
+            foreach (MonsterItemInterface monsterItemStruct in monsterItemStructs)
             {
-                ChatHelper.DebugSend("item.Name = " + item.Name);
-                if (item.Name.ToLower() == "AllWhite".ToLower() || item.Name.ToLower() == "AllTier1".ToLower())
+                if (monsterItemStruct is MonsterItemClassStruct)
                 {
-                    HandleMethod(item, ItemController_Instance.ItemTier1);
-                }
-                else if (item.Name.ToLower() == "AllGreen".ToLower() || item.Name.ToLower() == "AllTier2".ToLower())
+                    MonsterItemClassStruct classItem = monsterItemStruct as MonsterItemClassStruct;
+                    ChatHelper.DebugSend("item.Name = " + classItem.Name);
+                    if (classItem.Name.ToLower() == "AllWhite".ToLower() || classItem.Name.ToLower() == "AllTier1".ToLower())
+                    {
+                        HandleClassItem(classItem, ItemController_Instance.ItemTier1);
+                    }
+                    else if (classItem.Name.ToLower() == "AllGreen".ToLower() || classItem.Name.ToLower() == "AllTier2".ToLower())
+                    {
+                        HandleClassItem(classItem, ItemController_Instance.ItemTier2);
+                    }
+                    else if (classItem.Name.ToLower() == "AllRed".ToLower() || classItem.Name.ToLower() == "AllTier3".ToLower())
+                    {
+                        HandleClassItem(classItem, ItemController_Instance.ItemTier3);
+                    }
+                    else if (classItem.Name.ToLower() == "AllYellow".ToLower() || classItem.Name.ToLower() == "AllBoss".ToLower())
+                    {
+                        HandleClassItem(classItem, ItemController_Instance.ItemBoss);
+                    }
+                    else if (classItem.Name.ToLower() == "AllVoid".ToLower() || classItem.Name.ToLower() == "AllPurple".ToLower())
+                    {
+                        HandleClassItem(classItem, ItemController_Instance.ItemVoidTier);
+                    }
+                    else if (classItem.Name.ToLower() == "AllLunar".ToLower() || classItem.Name.ToLower() == "AllBlue".ToLower())
+                    {
+                        HandleClassItem(classItem, ItemController_Instance.ItemLunar);
+                    }
+                    else if (classItem.Name.ToLower() == "AllRandom".ToLower())
+                    {
+                        HandleClassItem(classItem, ItemController_Instance.ItemAll_Ban);
+                    }
+                } 
+                else if (monsterItemStruct is MonsterItemConcreteStruct)
                 {
-                    HandleMethod(item, ItemController_Instance.ItemTier2);
-                }
-                else if (item.Name.ToLower() == "AllRed".ToLower() || item.Name.ToLower() == "AllTier3".ToLower())
-                {
-                    HandleMethod(item, ItemController_Instance.ItemTier3);
-                }
-                else if (item.Name.ToLower() == "AllYellow".ToLower() || item.Name.ToLower() == "AllBoss".ToLower())
-                {
-                    HandleMethod(item, ItemController_Instance.ItemBoss);
-                }
-                else if (item.Name.ToLower() == "AllVoid".ToLower() || item.Name.ToLower() == "AllPurple".ToLower())
-                {
-                    HandleMethod(item, ItemController_Instance.ItemVoidTier);
-                }
-                else if (item.Name.ToLower() == "AllLunar".ToLower() || item.Name.ToLower() == "AllBlue".ToLower())
-                {
-                    HandleMethod(item, ItemController_Instance.ItemLunar);
-                }
-                else if (item.Name.ToLower() == "AllRandom".ToLower())
-                {
-                    HandleMethod(item, ItemController_Instance.ItemAll_Ban);
-                }
-                else
-                {
+                    MonsterItemConcreteStruct item = monsterItemStruct as MonsterItemConcreteStruct;
                     if (ModConfig.EnableMessage.Value) CurrentMonsterItems.Add(item);
                     UpdateItems(item);
                     //AddMonsterTeamItem(item.Name, item.Count);
@@ -267,17 +272,18 @@ namespace ArtifactEvolutionPlusPlus
         /// </summary>
         /// <param name="monsterItemStruct"></param>
         /// <param name="itemStructs"></param>
-        private void HandleMethod(MonsterItemStruct monsterItemStruct, List<ItemStruct> itemStructs)
+        private void HandleClassItem(MonsterItemClassStruct monsterItemStruct, List<ItemStruct> itemStructs)
         {
-            List<MonsterItemStruct> tempSaveItems = new List<MonsterItemStruct>();
+            List<MonsterItemConcreteStruct> tempSaveItems = new List<MonsterItemConcreteStruct>();
             string[] itemString;
             int totalPoolRange = itemStructs.Count;
-            int currPoolRange = monsterItemStruct.PoolRange == -1 ? totalPoolRange : monsterItemStruct.PoolRange;
-
+            int currPoolRange = monsterItemStruct.PoolRange;
             string message = "";
             ChatHelper.DebugSend("totalPoolRange = " + totalPoolRange + ", currPoolRange = " + currPoolRange);
-            if (currPoolRange == totalPoolRange) { }
-            else if (currPoolRange > totalPoolRange) { currPoolRange = totalPoolRange; } // 如果选取范围大于物品池，将等于物品总数
+            if (currPoolRange > totalPoolRange) 
+            { 
+                currPoolRange = totalPoolRange; 
+            }
             ChatHelper.DebugSend("totalPoolRange = " + totalPoolRange + ", currPoolRange = " + currPoolRange);
 
             itemString = GetRandomPoolNum(itemStructs, totalPoolRange, currPoolRange); // 开始随机抽取
@@ -286,9 +292,9 @@ namespace ArtifactEvolutionPlusPlus
                 ItemStruct itemStruct = itemStructs.AsEnumerable().FirstOrDefault(t => t.Name == codeName);
                 message += NameToLocal(itemStruct.Name) + "-" + monsterItemStruct.Count + " ";
                 AddMonsterTeamItem(itemStruct.Name, monsterItemStruct.Count);
-                tempSaveItems.Add(new MonsterItemStruct(itemStruct.Name, monsterItemStruct.Count, itemStruct.Order)); // 生成结果
+                tempSaveItems.Add(new MonsterItemConcreteStruct(itemStruct.Name, itemStruct.Order, monsterItemStruct.Count)); // 生成结果
 
-                if (ModConfig.EnableMessage.Value) CurrentMonsterItems.Add(new MonsterItemStruct(itemStruct.Name, monsterItemStruct.Count, itemStruct.Order));
+                if (ModConfig.EnableMessage.Value) CurrentMonsterItems.Add(new MonsterItemConcreteStruct(itemStruct.Name, itemStruct.Order, monsterItemStruct.Count));
                 ChatHelper.DebugSend(message);
             }
             UpdateItems(tempSaveItems); // 更新数量
@@ -341,16 +347,16 @@ namespace ArtifactEvolutionPlusPlus
             return Language.GetString(nameToken);
         }
 
-        private void UpdateItems(List<MonsterItemStruct> monsterItemStructs)
+        private void UpdateItems(List<MonsterItemConcreteStruct> monsterItemStructs)
         {
-            foreach (MonsterItemStruct item in monsterItemStructs)
+            foreach (MonsterItemConcreteStruct item in monsterItemStructs)
             {
                 // 更新已有物品数量
                 (from t in SaveMonsterItems
                  where t.Name == item.Name
                  select t).ToList().ForEach(y => y.Count += item.Count);
                 // 添加新的物品
-                MonsterItemStruct addDiffnet = SaveMonsterItems.Find(x => x.Name == item.Name);
+                MonsterItemConcreteStruct addDiffnet = SaveMonsterItems.Find(x => x.Name == item.Name);
                 if (addDiffnet is null)
                 {
                     SaveMonsterItems.Add(item);
@@ -362,7 +368,7 @@ namespace ArtifactEvolutionPlusPlus
             }
             //SaveMonsterItems = (from t in SaveMonsterItems orderby t.Order descending, t.Count descending select t).ToList();
         }
-        private void UpdateItems(MonsterItemStruct item)
+        private void UpdateItems(MonsterItemConcreteStruct item)
         {
             SaveMonsterItems.Add(item);
             //SaveMonsterItems = (from t in SaveMonsterItems orderby t.Order descending, t.Count descending select t).ToList();
@@ -612,34 +618,37 @@ namespace ArtifactEvolutionPlusPlus
                 ChatHelper.Send($"{name} = {count}");
             }
         }
-        internal class MonsterItemStruct
+        interface MonsterItemInterface {}
+        internal class MonsterItemConcreteStruct : MonsterItemInterface
         {
             public ItemStruct ItemStruct;
+            public string Name;
+            public int Count;
+            public int Order;
+
+            public MonsterItemConcreteStruct(string name, int order, int count) : this(name, order, count, null) { }
+            public MonsterItemConcreteStruct(string name, int order, int count, ItemStruct itemClass)
+            {
+                Name = name;
+                Count = count;
+                ItemStruct = itemClass;
+                Order = order;
+            }
+        }
+        internal class MonsterItemClassStruct : MonsterItemInterface
+        {
             public string Name;
             public int PoolRange;
             public int Count;
             public int Order;
 
-            public MonsterItemStruct(string name, int count, int order)
+            public MonsterItemClassStruct(string name, int order, int poolrange, int count)
             {
                 Name = name;
-                Count = count;
-                PoolRange = -1;
-                Order = order;
-            }
-            public MonsterItemStruct(string name, int poolrange, int count, int order) : this(name, count, order)
-            {
                 PoolRange = poolrange;
-            }
-            public MonsterItemStruct(ItemStruct itemClass, string name, int poolrange, int count, int order) : this(name, poolrange, count, order)
-            {
-                ItemStruct = itemClass;
+                Count = count;
                 Order = order;
             }
         }
-        
     }
-    
-
-    
 }
