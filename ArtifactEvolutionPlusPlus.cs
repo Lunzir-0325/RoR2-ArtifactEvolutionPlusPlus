@@ -257,12 +257,13 @@ namespace ArtifactEvolutionPlusPlus
         {
             if(poolRange < 0)
             {
-                itemDefs = new List<ItemDef>();
+                var tempItemDefs = new List<ItemDef>();
                 foreach(var item in SaveMonsterItems)
                 {
-                    if(!itemDefs.Contains(item.ItemDef))
-                        itemDefs.Add(item.ItemDef);
+                    if(!tempItemDefs.Contains(item.ItemDef) && itemDefs.Contains(item.ItemDef))
+                        tempItemDefs.Add(item.ItemDef);
                 }
+                itemDefs = tempItemDefs;
                 poolRange = Math.Abs(poolRange);
             }
             List<MonsterItemConcreteStruct> tempSaveItems = new List<MonsterItemConcreteStruct>();
