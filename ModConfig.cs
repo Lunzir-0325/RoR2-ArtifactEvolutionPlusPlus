@@ -43,7 +43,7 @@ namespace ArtifactEvolutionPlusPlus
         public static void InitConfig(ConfigFile config)
         {
             // 1 全局设置
-            EnableMod = config.Bind(Section1, "EnableMod", true, "Enable the mod. The configuration file will reload each time after you start a new run.\nfalse = back to game's original logic\n启用模组，每次开局会加载一次配置文件，所以可以在开局前设置好。\n" +
+            EnableMod = config.Bind(Section1, "Enabled", true, "Enable the mod. The configuration file will reload each time after you start a new run.\nfalse = back to game's original logic\n启用模组，每次开局会加载一次配置文件，所以可以在开局前设置好。\n" +
                 "游戏原版机制：1、2关卡默认1白装，3、4关卡默认1绿装，5关卡默认1红装");
             if (EnableMod.Value)
             {
@@ -145,6 +145,10 @@ namespace ArtifactEvolutionPlusPlus
                 //ItemCountOffset = config.Bind("4 自定义设置", "ItemCountOffset", 0, "偏差值");
                 //ItemMuitipleCount = config.Bind("4 自定义设置", "ItemMuitipleCount", 1, "倍数");
 
+            }
+            if (ModCompatibilityInLobbyConfig.enabled)
+            {
+                ModCompatibilityInLobbyConfig.CreateFromBepInExConfigFile(config, "Artifact Evolution++");
             }
         }
 
