@@ -172,12 +172,12 @@ namespace ArtifactEvolutionPlusPlus
                             itemClass = ItemController_Instance.ItemAll.Find(t => t.name.ToLower() == itemName.ToLower());
                         }
                         int order = itemClass is null ? -1 : ItemController_Instance.GetItemOrder(itemClass);
-                        _customItems.Add(new MonsterItemClassStruct(itemName, order, poolrange, count));
+                        _customItems.Add(new MonsterItemClassStruct(itemName, poolrange, count, order));
                     }
                     else
                     {
                         ChatHelper.DebugSend($"itemName = {itemName}, poolrange ={poolrange}, count = {count}, order = {ItemController_Instance.GetItemOrder(itemClass)}");
-                        _customItems.Add(new MonsterItemConcreteStruct(itemName, ItemController_Instance.GetItemOrder(itemClass), count, itemClass));
+                        _customItems.Add(new MonsterItemConcreteStruct(itemClass, count));
                     }
 
                 }
@@ -293,9 +293,9 @@ namespace ArtifactEvolutionPlusPlus
                 ItemDef ItemDef = ItemDefs.AsEnumerable().FirstOrDefault(t => t.name == codeName);
                 message += NameToLocal(ItemDef.name) + "-" + monsterItemDef.Count + " ";
                 AddMonsterTeamItem(ItemDef.name, monsterItemDef.Count);
-                tempSaveItems.Add(new MonsterItemConcreteStruct(ItemDef.name, ItemController_Instance.GetItemOrder(ItemDef), monsterItemDef.Count)); // 生成结果
+                tempSaveItems.Add(new MonsterItemConcreteStruct(ItemDef, monsterItemDef.Count)); // 生成结果
 
-                if (ModConfig.EnableMessage.Value) CurrentMonsterItems.Add(new MonsterItemConcreteStruct(ItemDef.name, ItemController_Instance.GetItemOrder(ItemDef), monsterItemDef.Count));
+                if (ModConfig.EnableMessage.Value) CurrentMonsterItems.Add(new MonsterItemConcreteStruct(ItemDef, monsterItemDef.Count));
                 ChatHelper.DebugSend(message);
             }
             UpdateItems(tempSaveItems); // 更新数量
@@ -354,10 +354,10 @@ namespace ArtifactEvolutionPlusPlus
             {
                 // 更新已有物品数量
                 (from t in SaveMonsterItems
-                 where t.Name == item.Name
+                 where t.ItemDef.name == item.ItemDef.name
                  select t).ToList().ForEach(y => y.Count += item.Count);
                 // 添加新的物品
-                MonsterItemConcreteStruct addDiffnet = SaveMonsterItems.Find(x => x.Name == item.Name);
+                MonsterItemConcreteStruct addDiffnet = SaveMonsterItems.Find(x => x.ItemDef.name == item.ItemDef.name);
                 if (addDiffnet is null)
                 {
                     SaveMonsterItems.Add(item);
@@ -386,7 +386,7 @@ namespace ArtifactEvolutionPlusPlus
             SaveMonsterItems = (from t in SaveMonsterItems orderby t.Order descending, t.Count descending select t).ToList();
             foreach (var item in SaveMonsterItems)
             {
-                AddMonsterTeamItem(item.Name, item.Count);
+                AddMonsterTeamItem(item.ItemDef.name, item.Count);
             }
             //foreach (MonsterItemDef  monsterItem in SaveMonsterItems)
             //{
@@ -559,20 +559,20 @@ namespace ArtifactEvolutionPlusPlus
                     
                     //CurrentMonsterItems = (from t in CurrentMonsterItems orderby t.Order descending, t.Count descending select t).ToList();
                     var qTable = from t in CurrentMonsterItems
-                                 group t by new { t.Name, t.Order }
+                                 group t by new { t.ItemDef.name, t.Order }
                                  into y
                                  select new
                                  {
                                      y.Key.Order,
-                                     y.Key.Name,
+                                     y.Key.name,
                                      Count = y.Sum(x => x.Count)
                                  };
                     //qTable = qTable.ToList().OrderByDescending(x => x.Order);
                     qTable = (from t in qTable orderby t.Order descending, t.Count descending select t);
                     foreach (var monsterItem in qTable)
                     {
-                        ChatHelper.DebugSend($"{monsterItem.Name} = {monsterItem.Count}, order{monsterItem.Order}");
-                        ItemDef item = ItemController_Instance.ItemAll.FirstOrDefault(x => x.name == monsterItem.Name);
+                        ChatHelper.DebugSend($"{monsterItem.name} = {monsterItem.Count}, order{monsterItem.Order}");
+                        ItemDef item = ItemController_Instance.ItemAll.FirstOrDefault(x => x.name == monsterItem.name);
                         string color = "";
                         if (monsterItem.Count > 0)
                             color = $"<color=red>{monsterItem.Count}</color>";
@@ -623,17 +623,16 @@ namespace ArtifactEvolutionPlusPlus
         internal class MonsterItemConcreteStruct : MonsterItemInterface
         {
             public ItemDef ItemDef;
-            public string Name;
             public int Count;
-            public int Order;
-
-            public MonsterItemConcreteStruct(string name, int order, int count) : this(name, order, count, null) { }
-            public MonsterItemConcreteStruct(string name, int order, int count, ItemDef itemClass)
+            public int Order
             {
-                Name = name;
+                get { return ItemController_Instance.GetItemOrder(ItemDef); }
+            }
+
+            public MonsterItemConcreteStruct(ItemDef itemClass, int count)
+            {
                 Count = count;
                 ItemDef = itemClass;
-                Order = order;
             }
         }
         internal class MonsterItemClassStruct : MonsterItemInterface
@@ -643,7 +642,7 @@ namespace ArtifactEvolutionPlusPlus
             public int Count;
             public int Order;
 
-            public MonsterItemClassStruct(string name, int order, int poolrange, int count)
+            public MonsterItemClassStruct(string name, int poolrange, int count, int order)
             {
                 Name = name;
                 PoolRange = poolrange;
