@@ -97,15 +97,15 @@ namespace ArtifactEvolutionPlusPlus
         {
             int stageIndex = Run.instance.stageClearCount + 1;
             string[] itemCodes = null;
-            List<MonsterItemInterface> monsterItemStructs = new List<MonsterItemInterface>();
+            List<MonsterItemInterface> monsterItemDefs = new List<MonsterItemInterface>();
             for (int i = 0; i < ModConfig.StageCustomItemList.Length; i++)
             {
                 if (stageIndex == (i + 1))
                 {
                     itemCodes = ModConfig.StageCustomItemList[i].Value.Split(',');
                     ChatHelper.DebugSend("itemCodes = " + itemCodes.Length);
-                    monsterItemStructs = SplitAndAddList(itemCodes);
-                    InitItemData_Handle(monsterItemStructs);
+                    monsterItemDefs = SplitAndAddList(itemCodes);
+                    InitItemData_Handle(monsterItemDefs);
                     break; // 找到对应关卡就退出循环
                 }
             }
@@ -119,6 +119,7 @@ namespace ArtifactEvolutionPlusPlus
             //    }
             //}
         }
+
         /// <summary>
         /// 分解字符串，获得具体内容
         /// </summary>
@@ -142,7 +143,7 @@ namespace ArtifactEvolutionPlusPlus
                     string itemName = codes[0].ToString().Trim();
                     int poolrange = int.MaxValue;
                     int count = 1;
-                    ItemStruct itemClass = ItemController_Instance.ItemAll_Ban.Find(t => t.Name.ToLower() == itemName.ToLower());
+                    ItemDef itemClass = ItemController_Instance.ItemAll_Ban.Find(t => t.name.ToLower() == itemName.ToLower());
                     if (itemName.IsNullOrWhiteSpace())
                     {
                         continue;
@@ -168,15 +169,15 @@ namespace ArtifactEvolutionPlusPlus
                         ChatHelper.DebugSend($"itemName = {itemName}, poolrange ={poolrange}, count = {count}, order = -1");
                         if (ModConfig.EnableMessage.Value)
                         {
-                            itemClass = ItemController_Instance.ItemAll.Find(t => t.Name.ToLower() == itemName.ToLower());
+                            itemClass = ItemController_Instance.ItemAll.Find(t => t.name.ToLower() == itemName.ToLower());
                         }
-                        int order = itemClass is null ? -1 : itemClass.Order;
+                        int order = itemClass is null ? -1 : ItemController_Instance.GetItemOrder(itemClass);
                         _customItems.Add(new MonsterItemClassStruct(itemName, order, poolrange, count));
                     }
                     else
                     {
-                        ChatHelper.DebugSend($"itemName = {itemName}, poolrange ={poolrange}, count = {count}, order = {itemClass.Order}");
-                        _customItems.Add(new MonsterItemConcreteStruct(itemName, itemClass.Order, count, itemClass));
+                        ChatHelper.DebugSend($"itemName = {itemName}, poolrange ={poolrange}, count = {count}, order = {ItemController_Instance.GetItemOrder(itemClass)}");
+                        _customItems.Add(new MonsterItemConcreteStruct(itemName, ItemController_Instance.GetItemOrder(itemClass), count, itemClass));
                     }
 
                 }
@@ -221,13 +222,13 @@ namespace ArtifactEvolutionPlusPlus
             }
             return isWhat;
         }
-        private void InitItemData_Handle(List<MonsterItemInterface> monsterItemStructs)
+        private void InitItemData_Handle(List<MonsterItemInterface> monsterItemDefs)
         {
-            foreach (MonsterItemInterface monsterItemStruct in monsterItemStructs)
+            foreach (MonsterItemInterface monsterItemDef in monsterItemDefs)
             {
-                if (monsterItemStruct is MonsterItemClassStruct)
+                if (monsterItemDef is MonsterItemClassStruct)
                 {
-                    MonsterItemClassStruct classItem = monsterItemStruct as MonsterItemClassStruct;
+                    MonsterItemClassStruct classItem = monsterItemDef as MonsterItemClassStruct;
                     ChatHelper.DebugSend("item.Name = " + classItem.Name);
                     if (classItem.Name.ToLower() == "AllWhite".ToLower() || classItem.Name.ToLower() == "AllTier1".ToLower())
                     {
@@ -258,9 +259,9 @@ namespace ArtifactEvolutionPlusPlus
                         HandleClassItem(classItem, ItemController_Instance.ItemAll_Ban);
                     }
                 } 
-                else if (monsterItemStruct is MonsterItemConcreteStruct)
+                else if (monsterItemDef is MonsterItemConcreteStruct)
                 {
-                    MonsterItemConcreteStruct item = monsterItemStruct as MonsterItemConcreteStruct;
+                    MonsterItemConcreteStruct item = monsterItemDef as MonsterItemConcreteStruct;
                     if (ModConfig.EnableMessage.Value) CurrentMonsterItems.Add(item);
                     UpdateItems(item);
                     //AddMonsterTeamItem(item.Name, item.Count);
@@ -270,14 +271,14 @@ namespace ArtifactEvolutionPlusPlus
         /// <summary>
         /// 针对关键字的处理方放
         /// </summary>
-        /// <param name="monsterItemStruct"></param>
-        /// <param name="itemStructs"></param>
-        private void HandleClassItem(MonsterItemClassStruct monsterItemStruct, List<ItemStruct> itemStructs)
+        /// <param name="monsterItemDef"></param>
+        /// <param name="ItemDefs"></param>
+        private void HandleClassItem(MonsterItemClassStruct monsterItemDef, List<ItemDef> ItemDefs)
         {
             List<MonsterItemConcreteStruct> tempSaveItems = new List<MonsterItemConcreteStruct>();
             string[] itemString;
-            int totalPoolRange = itemStructs.Count;
-            int currPoolRange = monsterItemStruct.PoolRange;
+            int totalPoolRange = ItemDefs.Count;
+            int currPoolRange = monsterItemDef.PoolRange;
             string message = "";
             ChatHelper.DebugSend("totalPoolRange = " + totalPoolRange + ", currPoolRange = " + currPoolRange);
             if (currPoolRange > totalPoolRange) 
@@ -286,15 +287,15 @@ namespace ArtifactEvolutionPlusPlus
             }
             ChatHelper.DebugSend("totalPoolRange = " + totalPoolRange + ", currPoolRange = " + currPoolRange);
 
-            itemString = GetRandomPoolNum(itemStructs, totalPoolRange, currPoolRange); // 开始随机抽取
+            itemString = GetRandomPoolNum(ItemDefs, totalPoolRange, currPoolRange); // 开始随机抽取
             foreach (string codeName in itemString)
             {
-                ItemStruct itemStruct = itemStructs.AsEnumerable().FirstOrDefault(t => t.Name == codeName);
-                message += NameToLocal(itemStruct.Name) + "-" + monsterItemStruct.Count + " ";
-                AddMonsterTeamItem(itemStruct.Name, monsterItemStruct.Count);
-                tempSaveItems.Add(new MonsterItemConcreteStruct(itemStruct.Name, itemStruct.Order, monsterItemStruct.Count)); // 生成结果
+                ItemDef ItemDef = ItemDefs.AsEnumerable().FirstOrDefault(t => t.name == codeName);
+                message += NameToLocal(ItemDef.name) + "-" + monsterItemDef.Count + " ";
+                AddMonsterTeamItem(ItemDef.name, monsterItemDef.Count);
+                tempSaveItems.Add(new MonsterItemConcreteStruct(ItemDef.name, ItemController_Instance.GetItemOrder(ItemDef), monsterItemDef.Count)); // 生成结果
 
-                if (ModConfig.EnableMessage.Value) CurrentMonsterItems.Add(new MonsterItemConcreteStruct(itemStruct.Name, itemStruct.Order, monsterItemStruct.Count));
+                if (ModConfig.EnableMessage.Value) CurrentMonsterItems.Add(new MonsterItemConcreteStruct(ItemDef.name, ItemController_Instance.GetItemOrder(ItemDef), monsterItemDef.Count));
                 ChatHelper.DebugSend(message);
             }
             UpdateItems(tempSaveItems); // 更新数量
@@ -305,7 +306,7 @@ namespace ArtifactEvolutionPlusPlus
         /// <param name="totalPoolCount">物品池总数</param>
         /// <param name="range">抽取数量</param>
         /// <returns></returns>
-        private string[] GetRandomPoolNum(List<ItemStruct> itemClasses, int totalPoolCount, int range)
+        private string[] GetRandomPoolNum(List<ItemDef> itemClasses, int totalPoolCount, int range)
         {
             ItemTable.Clear();
             int nValue;
@@ -316,7 +317,7 @@ namespace ArtifactEvolutionPlusPlus
                 for (int i = 0; i < range; i++)
                 {
                     nValue = Random.Next(totalPoolCount);
-                    randomString[i] = itemClasses[nValue].Name;
+                    randomString[i] = itemClasses[nValue].name;
                 }
             }
             else
@@ -326,7 +327,7 @@ namespace ArtifactEvolutionPlusPlus
                     nValue = Random.Next(totalPoolCount + 1);
                     if (!ItemTable.ContainsValue(nValue))
                     {
-                        randomString[i] = itemClasses[i].Name;
+                        randomString[i] = itemClasses[i].name;
                         ItemTable.Add(nValue, nValue);
                     }
                     else
@@ -347,9 +348,9 @@ namespace ArtifactEvolutionPlusPlus
             return Language.GetString(nameToken);
         }
 
-        private void UpdateItems(List<MonsterItemConcreteStruct> monsterItemStructs)
+        private void UpdateItems(List<MonsterItemConcreteStruct> monsterItemDefs)
         {
-            foreach (MonsterItemConcreteStruct item in monsterItemStructs)
+            foreach (MonsterItemConcreteStruct item in monsterItemDefs)
             {
                 // 更新已有物品数量
                 (from t in SaveMonsterItems
@@ -377,7 +378,7 @@ namespace ArtifactEvolutionPlusPlus
         {
             foreach (var item in ItemController_Instance.ItemAll)
             {
-                RemoveMonsterTeamItem(item.Name, 99999);
+                RemoveMonsterTeamItem(item.name, 99999);
             }
         }
         private void AddItems()
@@ -387,7 +388,7 @@ namespace ArtifactEvolutionPlusPlus
             {
                 AddMonsterTeamItem(item.Name, item.Count);
             }
-            //foreach (MonsterItemStruct  monsterItem in SaveMonsterItems)
+            //foreach (MonsterItemDef  monsterItem in SaveMonsterItems)
             //{
             //    if (monsterItem.Count < 0) monsterItem.Count = 0; // 避免负数
             //}
@@ -457,18 +458,18 @@ namespace ArtifactEvolutionPlusPlus
         [ConCommand(commandName = "show_allitem", flags = ConVarFlags.ExecuteOnServer, helpText = "显示all")]
         public static void Command_ShowAll(ConCommandArgs args)
         {
-            foreach (ItemStruct item in ItemController_Instance.ItemAll)
+            foreach (ItemDef item in ItemController_Instance.ItemAll)
             {
-                ChatHelper.Send($"name = {item.Name}, tier = {item.ItemTier}, index = {item.ItemIndex}, order = {item.Order}");
+                ChatHelper.Send($"name = {item.name}, tier = {item.tier}, index = {item.itemIndex}, order = {ItemController_Instance.GetItemOrder(item)}");
             }
 
         }
         [ConCommand(commandName = "show_allitem_ban", flags = ConVarFlags.ExecuteOnServer, helpText = "显示all_ban")]
         public static void Command_ShowAll_Ban(ConCommandArgs args)
         {
-            foreach (ItemStruct item in ItemController_Instance.ItemAll_Ban)
+            foreach (ItemDef item in ItemController_Instance.ItemAll_Ban)
             {
-                ChatHelper.Send($"name = {item.Name}, tier = {item.ItemTier}, index = {item.ItemIndex}, order = {item.Order}");
+                ChatHelper.Send($"name = {item.name}, tier = {item.tier}, index = {item.itemIndex}, order = {ItemController_Instance.GetItemOrder(item)}");
             }
 
         }
@@ -571,14 +572,14 @@ namespace ArtifactEvolutionPlusPlus
                     foreach (var monsterItem in qTable)
                     {
                         ChatHelper.DebugSend($"{monsterItem.Name} = {monsterItem.Count}, order{monsterItem.Order}");
-                        ItemStruct item = ItemController_Instance.ItemAll.FirstOrDefault(x => x.Name == monsterItem.Name);
+                        ItemDef item = ItemController_Instance.ItemAll.FirstOrDefault(x => x.name == monsterItem.Name);
                         string color = "";
                         if (monsterItem.Count > 0)
                             color = $"<color=red>{monsterItem.Count}</color>";
                         else
                             color = $"<color=green>{monsterItem.Count}</color>";
                         //ChatHelper.Send(" tier = " + item.ItemTier);
-                        if (!(item is null)) info += $"<style={ItemTierColor(item.ItemTier)}>{NameToLocal(item.Name)}</style>{color}, ";
+                        if (!(item is null)) info += $"<style={ItemTierColor(item.tier)}>{NameToLocal(item.name)}</style>{color}, ";
                     }
                     info = info.Substring(0, info.Length - 2);
                     ChatHelper.Send(info);
@@ -621,17 +622,17 @@ namespace ArtifactEvolutionPlusPlus
         interface MonsterItemInterface {}
         internal class MonsterItemConcreteStruct : MonsterItemInterface
         {
-            public ItemStruct ItemStruct;
+            public ItemDef ItemDef;
             public string Name;
             public int Count;
             public int Order;
 
             public MonsterItemConcreteStruct(string name, int order, int count) : this(name, order, count, null) { }
-            public MonsterItemConcreteStruct(string name, int order, int count, ItemStruct itemClass)
+            public MonsterItemConcreteStruct(string name, int order, int count, ItemDef itemClass)
             {
                 Name = name;
                 Count = count;
-                ItemStruct = itemClass;
+                ItemDef = itemClass;
                 Order = order;
             }
         }
