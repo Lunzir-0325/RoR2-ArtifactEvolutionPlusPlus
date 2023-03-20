@@ -212,7 +212,7 @@ namespace ArtifactEvolutionPlusPlus
             else if (name.ToLower() == "AllBlue".ToLower() || name.ToLower() == "AllLunar".ToLower())
             {
             }
-            else if (name.ToLower() == "AllRondom".ToLower())
+            else if (name.ToLower() == "AllRandom".ToLower())
             {
             }
             else
@@ -250,7 +250,7 @@ namespace ArtifactEvolutionPlusPlus
                 {
                     HandleMethod(item, ItemController_Instance.ItemLunar);
                 }
-                else if (item.Name.ToLower() == "AllRondom".ToLower())
+                else if (item.Name.ToLower() == "AllRandom".ToLower())
                 {
                     HandleMethod(item, ItemController_Instance.ItemAll_Ban);
                 }
