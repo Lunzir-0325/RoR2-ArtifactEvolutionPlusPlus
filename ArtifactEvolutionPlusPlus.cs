@@ -149,7 +149,13 @@ namespace ArtifactEvolutionPlusPlus
                         if (IsKeyWord(itemName))
                         {
                             poolrange = int.Parse(codes[1].ToString().Trim());
-                            count = 1;
+                            if(poolrange >= 0)
+                            {
+                                count = 1;
+                            } else
+                            {
+                                count = -1;
+                            }
                             _customItems.Add(new MonsterItemClassStruct(itemName, poolrange, count));
                         }
                         else if(itemClass != null)
@@ -167,6 +173,10 @@ namespace ArtifactEvolutionPlusPlus
                         count = int.Parse(codes[2].ToString().Trim());
                         if (IsKeyWord(itemName))
                         {
+                            if (poolrange >= 0 && count < 0)
+                            {
+                                poolrange = -poolrange;
+                            }
                             _customItems.Add(new MonsterItemClassStruct(itemName, poolrange, count));
                         }
                         else
@@ -267,7 +277,7 @@ namespace ArtifactEvolutionPlusPlus
         /// </summary>
         private void HandleClassItem(List<ItemDef> itemDefs, int poolRange, int count)
         {
-            if(poolRange < 0 || count < 0)
+            if(poolRange < 0)
             {
                 itemDefs = new List<ItemDef>();
                 foreach(var item in SaveMonsterItems)
@@ -276,7 +286,6 @@ namespace ArtifactEvolutionPlusPlus
                         itemDefs.Add(item.ItemDef);
                 }
                 poolRange = Math.Abs(poolRange);
-                count = Math.Abs(count);
             }
             List<MonsterItemConcreteStruct> tempSaveItems = new List<MonsterItemConcreteStruct>();
             string[] itemString;
