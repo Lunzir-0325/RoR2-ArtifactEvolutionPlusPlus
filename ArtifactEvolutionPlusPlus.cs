@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using R2API.Utils;
 using RoR2;
 using UnityEngine;
@@ -12,10 +12,9 @@ using RoR2.Artifacts;
 
 namespace ArtifactEvolutionPlusPlus
 {
-    [BepInDependency("com.bepis.r2api")]
+    [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInPlugin("com.Lunzir.ArtifactEvolutionPlusPlus", "Artifact Evolution Plus Plus", "1.1.0")]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2API.Utils.R2APISubmoduleDependency(nameof(CommandHelper))]
     public class ArtifactEvolutionPlusPlus : BaseUnityPlugin
     {
         System.Collections.Hashtable ItemTable = new System.Collections.Hashtable();
@@ -36,7 +35,6 @@ namespace ArtifactEvolutionPlusPlus
 
                 On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.GrantMonsterTeamItem += MonsterTeamGainsItemsArtifactManager_GrantMonsterTeamItem;
                 On.RoR2.SceneDirector.Start += SceneDirector_Start;
-                R2API.Utils.CommandHelper.AddToConsoleWhenReady();
             }
         }
 
