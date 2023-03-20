@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="..\libs\**" />
-    <EmbeddedResource Remove="..\libs\**" />
-    <None Remove="..\libs\**" />
+    <Compile Remove="libs\**" />
+    <EmbeddedResource Remove="libs\**" />
+    <None Remove="libs\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,7 +28,7 @@
 
   <ItemGroup>
     <Reference Include="InLobbyConfig">
-      <HintPath>..\libs\InLobbyConfig.dll</HintPath>
+      <HintPath>libs\InLobbyConfig.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>
@@ -38,9 +38,5 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /e /v /y &quot;$(TargetDir)&quot; &quot;E:\Risk of Rain 2 - Dev\BepInEx\plugins\Lunzir2-ArtifactEvolutionPlusPlus\&quot;&#xD;&#xA;" />
-  </Target>
 
 </Project>
