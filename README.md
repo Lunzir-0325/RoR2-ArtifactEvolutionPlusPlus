@@ -40,7 +40,7 @@ StageCustomItemList_1|Pearl&10, AllWhite&10&1,
 StageCustomItemList_2|Pearl&10, AllWhite&10
 StageCustomItemList_3|Pearl&10, AllGreen&1, Phasing&1
 StageCustomItemList_4|Pearl&10, AllGreen&1, Seed&1
-StageCustomItemList_5|Pearl&10, AllRed&1&2, AllBossw&1, AllVoid&1, AllRondom&1
+StageCustomItemList_5|Pearl&10, AllRed&1&2, AllBossw&1, AllVoid&1, AllRandom&1
 StageCustomItemList_6|...
 
 

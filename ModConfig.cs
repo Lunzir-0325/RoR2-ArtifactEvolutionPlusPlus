@@ -43,7 +43,7 @@ namespace ArtifactEvolutionPlusPlus
         public static void InitConfig(ConfigFile config)
         {
             // 1 全局设置
-            EnableMod = config.Bind(Section1, "EnableMod", true, "Enable the mod. The configuration file will reload each time after you start a new run.\nfalse = back to game's original logic\n启用模组，每次开局会加载一次配置文件，所以可以在开局前设置好。\n" +
+            EnableMod = config.Bind(Section1, "Enabled", true, "Enable the mod. The configuration file will reload each time after you start a new run.\nfalse = back to game's original logic\n启用模组，每次开局会加载一次配置文件，所以可以在开局前设置好。\n" +
                 "游戏原版机制：1、2关卡默认1白装，3、4关卡默认1绿装，5关卡默认1红装");
             if (EnableMod.Value)
             {
@@ -79,7 +79,7 @@ namespace ArtifactEvolutionPlusPlus
                 StageCustomNumber = config.Bind(Section2, "StageCustomNumber", 20, "Customize the number of items in the stage.\n" +
                     "The first thing to do is start the game, and the corresponding number of stages will be generated.\n" +
                     "Usage: [ ItemCode&Count ] or [ KeyWord&PoolRange(&Count) ]\n" +
-                    "KeyWord: AllRondom, AllWhite(AllTier1), AllGreen(AllTier2), AllRed(AllTier3), AllYellow(AllBoss), AllBlue(AllLunar), AllPurple(AllVoid)\n" +
+                    "KeyWord: AllRandom, AllWhite(AllTier1), AllGreen(AllTier2), AllRed(AllTier3), AllYellow(AllBoss), AllBlue(AllLunar), AllPurple(AllVoid)\n" +
                     "Example1: Bear&3 means monsters wiil get 3 bears.\n" +
                     "Example2: AllWhite&3&2 means monsters get 3 random items of 2 each from the white(tier1) channel.\n" +
                     "Example3: AllGreen&4 means monsters get 4 random items from the Green(tier12) channel, each count default is 1, same as AllGreen&4&1\n" +
@@ -88,11 +88,11 @@ namespace ArtifactEvolutionPlusPlus
                     "自定义关卡物品数量\n" +
                    "使用说明：先启动一次游戏，自动生成相应关数\n" +
                    "添加例子：[ 物品名称&物品数量 ] 或 [ 关键词&池数值(&物品数量) ]\n" +
-                   "关键词这些： AllRondom, AllWhite(AllTier1), AllGreen(AllTier2), AllRed(AllTier3), AllYellow(AllBoss), AllBlue(AllLunar), AllPurple(AllVoid)\n" +
+                   "关键词这些： AllRandom, AllWhite(AllTier1), AllGreen(AllTier2), AllRed(AllTier3), AllYellow(AllBoss), AllBlue(AllLunar), AllPurple(AllVoid)\n" +
                    "如Bear&3，物品为小熊，数量为3个\n" +
                    "如AllWhite&5&2，从所有白色物品池中随机取5个物品，数量为2\n" +
                    "如AllWhite&4，从所有白色物品池中随机取4个物品，默认数量为1，也可以写成AllWhite&4&1意思一样\n" +
-                   "如AllRondom&10，从所有物品池取10个物品，默认数量为1\n" +
+                   "如AllRandom&10，从所有物品池取10个物品，默认数量为1\n" +
                    "取值范围：0至无限, 0 = 不给物品；负数为减少物品");
                 if (StageCustomNumber.Value == 0)
                 {
@@ -136,7 +136,7 @@ namespace ArtifactEvolutionPlusPlus
 
                 //AfterStageCustomNumber = config.Bind("4 自定义设置", "AfterStageCustomNumber", 21, "从第几关开始，设置额外物品可，可以与上面自定义关卡并列影响，此选项关联下面选项\n" +
                 //    "取值范围：-1 = 不开启，下面选项都会失效");
-                //AfterStageCustomItemList = config.Bind("4 自定义设置", "AfterFifthStageCustomItemList", "Pearl&1, AllRondom&4&1", "关卡5之后，物品设置\n" +
+                //AfterStageCustomItemList = config.Bind("4 自定义设置", "AfterFifthStageCustomItemList", "Pearl&1, AllRandom&4&1", "关卡5之后，物品设置\n" +
                 //    "说明：从第AfterStageCustomNumber关开始，一直保持这个选项增加相应物品和数量");
                 //EnableBaseOfGrowth = config.Bind("4 自定义设置", "EnableBaseOfGrowth", true, "启用物品数量高级计算，以游戏关卡数作为递增\n" +
                 //    "计算公式：基础物品数量 + (当前关卡 x 倍数 + 偏差值)\n" +
@@ -145,6 +145,10 @@ namespace ArtifactEvolutionPlusPlus
                 //ItemCountOffset = config.Bind("4 自定义设置", "ItemCountOffset", 0, "偏差值");
                 //ItemMuitipleCount = config.Bind("4 自定义设置", "ItemMuitipleCount", 1, "倍数");
 
+            }
+            if (ModCompatibilityInLobbyConfig.enabled)
+            {
+                ModCompatibilityInLobbyConfig.CreateFromBepInExConfigFile(config, "Artifact Evolution++");
             }
         }
 

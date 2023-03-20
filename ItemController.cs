@@ -1,4 +1,4 @@
-﻿using RoR2;
+using RoR2;
 using RoR2.Artifacts;
 using System;
 using System.Collections.Generic;
@@ -9,17 +9,17 @@ namespace ArtifactEvolutionPlusPlus
 {
     public class ItemController
     {
-        public List<ItemStruct> ItemTier1 = new List<ItemStruct>();
-        public List<ItemStruct> ItemTier2 = new List<ItemStruct>();
-        public List<ItemStruct> ItemTier3 = new List<ItemStruct>();
-        public List<ItemStruct> ItemBoss = new List<ItemStruct>();
-        public List<ItemStruct> ItemVoidTier = new List<ItemStruct>();
-        public List<ItemStruct> ItemLunar = new List<ItemStruct>();
-        public List<ItemStruct> ItemNoTier = new List<ItemStruct>();
-        public List<ItemStruct> ItemAll_Ban = new List<ItemStruct>();
-        public List<ItemStruct> ItemAll = new List<ItemStruct>();
+        public List<ItemDef> ItemTier1 = new List<ItemDef>();
+        public List<ItemDef> ItemTier2 = new List<ItemDef>();
+        public List<ItemDef> ItemTier3 = new List<ItemDef>();
+        public List<ItemDef> ItemBoss = new List<ItemDef>();
+        public List<ItemDef> ItemVoidTier = new List<ItemDef>();
+        public List<ItemDef> ItemLunar = new List<ItemDef>();
+        public List<ItemDef> ItemNoTier = new List<ItemDef>();
+        public List<ItemDef> ItemAll_Ban = new List<ItemDef>();
+        public List<ItemDef> ItemAll = new List<ItemDef>();
         //public static ItemController Instance { get; set; }
-        //public static List<ItemStruct> ItemCountLimitListAndWeight = new List<ItemStruct>();
+        //public static List<ItemDef> ItemCountLimitListAndWeight = new List<ItemDef>();
 
         public ItemController()
         {
@@ -28,28 +28,28 @@ namespace ArtifactEvolutionPlusPlus
                 switch (itemDef.tier)
                 {
                     case ItemTier.Tier1:
-                        ItemTier1.Add(new ItemStruct(itemDef.name, itemDef.tier, 0, -1, 1, 1, itemDef.itemIndex));
+                        ItemTier1.Add(itemDef);
                         continue;
                     case ItemTier.Tier2:
-                        ItemTier2.Add(new ItemStruct(itemDef.name, itemDef.tier, 0, -1, 1, 2, itemDef.itemIndex));
+                        ItemTier2.Add(itemDef);
                         continue;
                     case ItemTier.Tier3:
-                        ItemTier3.Add(new ItemStruct(itemDef.name, itemDef.tier, 0, -1, 1, 3, itemDef.itemIndex));
+                        ItemTier3.Add(itemDef);
                         continue;
                     case ItemTier.Boss:
-                        ItemBoss.Add(new ItemStruct(itemDef.name, itemDef.tier, 0, -1, 1, 4, itemDef.itemIndex));
+                        ItemBoss.Add(itemDef);
                         continue;
                     case ItemTier.Lunar:
-                        ItemLunar.Add(new ItemStruct(itemDef.name, itemDef.tier, 0, -1, 1, 5, itemDef.itemIndex));
+                        ItemLunar.Add(itemDef);
                         continue;
                     case ItemTier.VoidTier1:
                     case ItemTier.VoidTier2:
                     case ItemTier.VoidTier3:
                     case ItemTier.VoidBoss:
-                        ItemVoidTier.Add(new ItemStruct(itemDef.name, itemDef.tier, 0, -1, 1, 6, itemDef.itemIndex));
+                        ItemVoidTier.Add(itemDef);
                         continue;
                     case ItemTier.NoTier:
-                        ItemNoTier.Add(new ItemStruct(itemDef.name, itemDef.tier, 0, -1, 1, 7, itemDef.itemIndex));
+                        ItemNoTier.Add(itemDef);
                         continue;
                 }
             }
@@ -66,44 +66,104 @@ namespace ArtifactEvolutionPlusPlus
             AddBanItem();
             UpdateAllItem();
         }
-        
+
+        public List<ItemDef> GetPool(string name)
+        {
+            if (name.ToLower() == "AllWhite".ToLower() || name.ToLower() == "AllTier1".ToLower())
+            {
+                return ItemTier1;
+            }
+            else if (name.ToLower() == "AllGreen".ToLower() || name.ToLower() == "AllTier2".ToLower())
+            {
+                return ItemTier2;
+            }
+            else if (name.ToLower() == "AllRed".ToLower() || name.ToLower() == "AllTier3".ToLower())
+            {
+                return ItemTier3;
+            }
+            else if (name.ToLower() == "AllYellow".ToLower() || name.ToLower() == "AllBoss".ToLower())
+            {
+                return ItemBoss;
+            }
+            else if (name.ToLower() == "AllVoid".ToLower() || name.ToLower() == "AllPurple".ToLower())
+            {
+                return ItemVoidTier;
+            }
+            else if (name.ToLower() == "AllLunar".ToLower() || name.ToLower() == "AllBlue".ToLower())
+            {
+                return ItemLunar;
+            }
+            else if (name.ToLower() == "AllRandom".ToLower())
+            {
+                return ItemAll_Ban;
+            }
+            return null;
+        }
+
+        public int GetItemOrder(ItemDef itemDef)
+        {
+            if (itemDef == null)
+                return -1;
+            switch (itemDef.tier)
+            {
+                case ItemTier.Tier1:
+                    return 1;
+                case ItemTier.Tier2:
+                    return 2;
+                case ItemTier.Tier3:
+                    return 3;
+                case ItemTier.Boss:
+                    return 4;
+                case ItemTier.Lunar:
+                    return 5;
+                case ItemTier.VoidTier1:
+                case ItemTier.VoidTier2:
+                case ItemTier.VoidTier3:
+                case ItemTier.VoidBoss:
+                    return 6;
+                case ItemTier.NoTier:
+                    return 7;
+                default:
+                    return -1;
+            }
+        }
 
         public void AddBanItem()
         {
             string[] banCodes = ModConfig.ItemTier1Banlist.Value.Split(',');
             for (int i = 0; i < banCodes.Length; i++)
             {
-                ItemTier1.Remove(ItemTier1.AsEnumerable().FirstOrDefault(item => item.Name.ToLower() == banCodes[i].Trim().ToLower()));
+                ItemTier1.Remove(ItemTier1.AsEnumerable().FirstOrDefault(item => item.name.ToLower() == banCodes[i].Trim().ToLower()));
             }
 
             banCodes = ModConfig.ItemTier2Banlist.Value.Split(',');
             for (int i = 0; i < banCodes.Length; i++)
             {
-                ItemTier2.Remove(ItemTier2.AsEnumerable().FirstOrDefault(item => item.Name.ToLower() == banCodes[i].Trim().ToLower()));
+                ItemTier2.Remove(ItemTier2.AsEnumerable().FirstOrDefault(item => item.name.ToLower() == banCodes[i].Trim().ToLower()));
             }
 
             banCodes = ModConfig.ItemTier3Banlist.Value.Split(',');
             for (int i = 0; i < banCodes.Length; i++)
             {
-                ItemTier3.Remove(ItemTier3.AsEnumerable().FirstOrDefault(item => item.Name.ToLower() == banCodes[i].Trim().ToLower()));
+                ItemTier3.Remove(ItemTier3.AsEnumerable().FirstOrDefault(item => item.name.ToLower() == banCodes[i].Trim().ToLower()));
             }
 
             banCodes = ModConfig.ItemBossBanlist.Value.Split(',');
             for (int i = 0; i < banCodes.Length; i++)
             {
-                ItemBoss.Remove(ItemBoss.AsEnumerable().FirstOrDefault(item => item.Name.ToLower() == banCodes[i].Trim().ToLower()));
+                ItemBoss.Remove(ItemBoss.AsEnumerable().FirstOrDefault(item => item.name.ToLower() == banCodes[i].Trim().ToLower()));
             }
 
             banCodes = ModConfig.ItemVoidTierBanlist.Value.Split(',');
             for (int i = 0; i < banCodes.Length; i++)
             {
-                ItemVoidTier.Remove(ItemVoidTier.AsEnumerable().FirstOrDefault(item => item.Name.ToLower() == banCodes[i].Trim().ToLower()));
+                ItemVoidTier.Remove(ItemVoidTier.AsEnumerable().FirstOrDefault(item => item.name.ToLower() == banCodes[i].Trim().ToLower()));
             }
             
             banCodes = ModConfig.ItemLunarBanlist.Value.Split(',');
             for (int i = 0; i < banCodes.Length; i++)
             {
-                ItemLunar.Remove(ItemLunar.AsEnumerable().FirstOrDefault(item => item.Name.ToLower() == banCodes[i].Trim().ToLower()));
+                ItemLunar.Remove(ItemLunar.AsEnumerable().FirstOrDefault(item => item.name.ToLower() == banCodes[i].Trim().ToLower()));
             }
         }
         //public void AddLimitAndWeight()
@@ -118,17 +178,17 @@ namespace ArtifactEvolutionPlusPlus
         //        double weight = 1;
         //        if (vsSplit.Count() == 2)
         //        {
-        //            ItemCountLimitListAndWeight.Add(new ItemStruct(name, limit, weight));
+        //            ItemCountLimitListAndWeight.Add(new ItemDef(name, limit, weight));
         //        }
         //        else if (vsSplit.Count() == 3)
         //        {
         //            weight = double.Parse(vsSplit[2]);
-        //            ItemCountLimitListAndWeight.Add(new ItemStruct(name, limit, weight));
+        //            ItemCountLimitListAndWeight.Add(new ItemDef(name, limit, weight));
         //        }
         //    }
-        //    foreach (ItemStruct item in ItemCountLimitListAndWeight)
+        //    foreach (ItemDef item in ItemCountLimitListAndWeight)
         //    {
-        //        ItemStruct tempItemClass = ItemAll.AsEnumerable().FirstOrDefault(t => t.Name.Equals(item.Name));
+        //        ItemDef tempItemClass = ItemAll.AsEnumerable().FirstOrDefault(t => t.Name.Equals(item.Name));
         //        if (tempItemClass.ItemTier == ItemTier.Tier1)
         //        {
         //            AddLimitAndWeight_Handle(ItemTier1, item, tempItemClass);
@@ -158,10 +218,10 @@ namespace ArtifactEvolutionPlusPlus
         //        }
         //    }
         //}
-        //private void AddLimitAndWeight_Handle(List<ItemStruct> listitemClass, ItemStruct currentItem, ItemStruct tempItemClass)
+        //private void AddLimitAndWeight_Handle(List<ItemDef> listitemClass, ItemDef currentItem, ItemDef tempItemClass)
         //{
-        //    ItemStruct oldItemClass = listitemClass.AsEnumerable().FirstOrDefault(t => t.Name.Equals(tempItemClass.Name));
-        //    ItemStruct newItemClass = new ItemStruct()
+        //    ItemDef oldItemClass = listitemClass.AsEnumerable().FirstOrDefault(t => t.Name.Equals(tempItemClass.Name));
+        //    ItemDef newItemClass = new ItemDef()
         //    {
         //        Name = oldItemClass.Name,
         //        ItemTier = oldItemClass.ItemTier,
@@ -175,12 +235,12 @@ namespace ArtifactEvolutionPlusPlus
 
         private void UpdateAllItem()
         {
-            ItemTier1 = ItemTier1.OrderBy(t => t.Name).ToList();
-            ItemTier2 = ItemTier2.OrderBy(t => t.Name).ToList();
-            ItemTier3 = ItemTier3.OrderBy(t => t.Name).ToList();
-            ItemBoss = ItemBoss.OrderBy(t => t.Name).ToList();
-            ItemVoidTier = ItemVoidTier.OrderBy(t => t.Name).ToList();
-            ItemLunar = ItemLunar.OrderBy(t => t.Name).ToList();
+            ItemTier1 = ItemTier1.OrderBy(t => t.name).ToList();
+            ItemTier2 = ItemTier2.OrderBy(t => t.name).ToList();
+            ItemTier3 = ItemTier3.OrderBy(t => t.name).ToList();
+            ItemBoss = ItemBoss.OrderBy(t => t.name).ToList();
+            ItemVoidTier = ItemVoidTier.OrderBy(t => t.name).ToList();
+            ItemLunar = ItemLunar.OrderBy(t => t.name).ToList();
 
             ItemAll_Ban.Clear();
             ItemAll_Ban.AddRange(ItemTier1);
@@ -191,56 +251,4 @@ namespace ArtifactEvolutionPlusPlus
             ItemAll_Ban.AddRange(ItemLunar);
         }
     }
-    public class ItemStruct
-    {
-        public ItemIndex ItemIndex;
-        public string Name;
-        public ItemTier ItemTier;
-        public int Serveravailble;
-        public int Limit;
-        public double Weight;
-        public int Order;
-
-        public ItemStruct() { }
-
-        public ItemStruct(ItemIndex index, string name, ItemTier itemTier, int serveravailble)
-        {
-            ItemIndex = index;
-            Name = name;
-            ItemTier = itemTier;
-            Serveravailble = serveravailble;
-        }
-
-        public ItemStruct(string name, ItemTier itemTier, int serveravailble)
-        {
-            Name = name;
-            ItemTier = itemTier;
-            Serveravailble = serveravailble;
-        }
-
-        public ItemStruct(string name, int limit, double weight)
-        {
-            Name = name;
-            Limit = limit;
-            Weight = weight;
-        }
-
-        public ItemStruct(string name, ItemTier itemTier, int serveravailble, ItemIndex index, int limit, double weight)
-        {
-            ItemIndex = index;
-            Name = name;
-            ItemTier = itemTier;
-            Serveravailble = serveravailble;
-            Limit = limit;
-            Weight = weight;
-        }
-
-        public ItemStruct(string name, ItemTier itemTier, int serveravailble, int limit, double weight, int order, ItemIndex itemIndex) : this(name, itemTier, serveravailble)
-        {
-            Limit = limit;
-            Weight = weight;
-            Order = order;
-        }
-    }
-
 }
