@@ -109,15 +109,6 @@ namespace ArtifactEvolutionPlusPlus
                     break; // 找到对应关卡就退出循环
                 }
             }
-            //if (ModConfig.AfterStageCustomNumber.Value != -1)
-            //{
-            //    if (ModConfig.AfterStageCustomNumber.Value <= stageIndex)
-            //    {
-            //        itemCodes = ModConfig.AfterStageCustomItemList.Value.Split(',');
-            //        CustomItems = SplitAndAddList(itemCodes, stageIndex);
-            //        InitItemData_Handle(CustomItems);
-            //    }
-            //}
         }
 
         /// <summary>
