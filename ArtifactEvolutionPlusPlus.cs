@@ -234,34 +234,12 @@ namespace ArtifactEvolutionPlusPlus
                 {
                     MonsterItemClassStruct classItem = monsterItemDef as MonsterItemClassStruct;
                     Logger.LogDebug("item.Name = " + classItem.Name);
-                    if (classItem.Name.ToLower() == "AllWhite".ToLower() || classItem.Name.ToLower() == "AllTier1".ToLower())
+                    var pool = ItemController_Instance.GetPool(classItem.Name);
+                    if (pool == null)
                     {
-                        HandleClassItem(ItemController_Instance.ItemTier1, classItem.PoolRange, classItem.Count);
+                        Logger.LogError("Unknown keyword " + classItem.Name);
                     }
-                    else if (classItem.Name.ToLower() == "AllGreen".ToLower() || classItem.Name.ToLower() == "AllTier2".ToLower())
-                    {
-                        HandleClassItem(ItemController_Instance.ItemTier2, classItem.PoolRange, classItem.Count);
-                    }
-                    else if (classItem.Name.ToLower() == "AllRed".ToLower() || classItem.Name.ToLower() == "AllTier3".ToLower())
-                    {
-                        HandleClassItem(ItemController_Instance.ItemTier3, classItem.PoolRange, classItem.Count);
-                    }
-                    else if (classItem.Name.ToLower() == "AllYellow".ToLower() || classItem.Name.ToLower() == "AllBoss".ToLower())
-                    {
-                        HandleClassItem(ItemController_Instance.ItemBoss, classItem.PoolRange, classItem.Count);
-                    }
-                    else if (classItem.Name.ToLower() == "AllVoid".ToLower() || classItem.Name.ToLower() == "AllPurple".ToLower())
-                    {
-                        HandleClassItem(ItemController_Instance.ItemVoidTier, classItem.PoolRange, classItem.Count);
-                    }
-                    else if (classItem.Name.ToLower() == "AllLunar".ToLower() || classItem.Name.ToLower() == "AllBlue".ToLower())
-                    {
-                        HandleClassItem(ItemController_Instance.ItemLunar, classItem.PoolRange, classItem.Count);
-                    }
-                    else if (classItem.Name.ToLower() == "AllRandom".ToLower())
-                    {
-                        HandleClassItem(ItemController_Instance.ItemAll_Ban, classItem.PoolRange, classItem.Count);
-                    }
+                    HandleClassItem(pool, classItem.PoolRange, classItem.Count);
                 } 
                 else if (monsterItemDef is MonsterItemConcreteStruct)
                 {

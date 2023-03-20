@@ -1,4 +1,4 @@
-﻿using RoR2;
+using RoR2;
 using RoR2.Artifacts;
 using System;
 using System.Collections.Generic;
@@ -65,6 +65,39 @@ namespace ArtifactEvolutionPlusPlus
             //AddLimitAndWeight();
             AddBanItem();
             UpdateAllItem();
+        }
+
+        public List<ItemDef> GetPool(string name)
+        {
+            if (name.ToLower() == "AllWhite".ToLower() || name.ToLower() == "AllTier1".ToLower())
+            {
+                return ItemTier1;
+            }
+            else if (name.ToLower() == "AllGreen".ToLower() || name.ToLower() == "AllTier2".ToLower())
+            {
+                return ItemTier2;
+            }
+            else if (name.ToLower() == "AllRed".ToLower() || name.ToLower() == "AllTier3".ToLower())
+            {
+                return ItemTier3;
+            }
+            else if (name.ToLower() == "AllYellow".ToLower() || name.ToLower() == "AllBoss".ToLower())
+            {
+                return ItemBoss;
+            }
+            else if (name.ToLower() == "AllVoid".ToLower() || name.ToLower() == "AllPurple".ToLower())
+            {
+                return ItemVoidTier;
+            }
+            else if (name.ToLower() == "AllLunar".ToLower() || name.ToLower() == "AllBlue".ToLower())
+            {
+                return ItemLunar;
+            }
+            else if (name.ToLower() == "AllRandom".ToLower())
+            {
+                return ItemAll_Ban;
+            }
+            return null;
         }
 
         public int GetItemOrder(ItemDef itemDef)
